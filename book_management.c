@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "common.h"
 #include "book_management.h"
 #include "strsplit.h"
 
 #define MAX_LIST_LEN 128
-#define BUF_LEN 128
-#define SYM_SPLIT ","
+#define SYM_SPLIT ", "
 
 // frees any resource allocated to store books
 static void book_cleanup();
@@ -23,6 +23,10 @@ static int append_book_node(Book* book);
 // remember to call free(BookList -> list) to release memory after using it
 static BookList create_empty_booklist();
 
+// create an empty book
+static Book* create_empty_book();
+
+
 /* here I define a struct of header node
  * for the convenience of editing the linked list */
 typedef struct _BookHeadNode {
@@ -33,40 +37,33 @@ typedef struct _BookHeadNode {
 BookHeadNode* bookHeadNodePt = NULL;
 
 int store_books(FILE *file) {
-    Book* book;
+    Book* book = NULL;
 
-    // check if fp is valid
-    if (!file) {
-        fprintf(stderr, "Error in opening file\n");
+    // check if parameters are valid
+    if (!file || !bookHeadNodePt)
         return -1;
-    }
-    
-    // check if book list is valid
-    if (!bookHeadNodePt) {
-        fprintf(stderr, "There is nothing to store\n");
-        return -1;
-    } else
+    else
         book = bookHeadNodePt -> book;
     
     // write the number of books
-    fprintf(file, "%ud\n", bookHeadNodePt -> length);
+    fprintf(file, "%u\n", bookHeadNodePt -> length);
     
     // write books info
     for (int i = 0; i < bookHeadNodePt -> length; i++) {
         // Book ID:
-        fprintf(file, "ID:%ud\n", book -> id);
+        fprintf(file, "ID:\t\t\t\t%u\n", book -> id);
         
         // Book Title:
-        fprintf(file, "Book Title:%s\n", book -> title);
+        fprintf(file, "Book Title:\t\t%s\n", book -> title);
         
         // Book Authors:
-        fprintf(file, "Book Authors:%s\n", book -> authors);
+        fprintf(file, "Book Authors:\t%s\n", book -> authors);
         
         // Book Year:
-        fprintf(file, "Book Year:%ud\n", book -> year);
+        fprintf(file, "Book Year:\t\t%u\n", book -> year);
         
         // Book Copies:
-        fprintf(file, "Book Copies:%ud\n", book -> copies);
+        fprintf(file, "Book Copies:\t%u\n", book -> copies);
         
         book = book -> next;
     }
@@ -76,63 +73,59 @@ int store_books(FILE *file) {
 
 int load_books(FILE *file) {
     int nbook = 0;
-    BookHeadNode* headNodePt;
-    Book* book;
+    BookHeadNode* headNodePt = NULL;
+    Book* book = NULL;
     char buf[BUF_LEN];
     
     // check if fp is valid
-    if (!file) {
-        fprintf(stderr, "Error in opening file\n");
+    if (!file)
         return -1;
-    }
-    
-    // init head node
-    headNodePt = (BookHeadNode*) malloc(sizeof(BookHeadNode));
     
     // read first line as the number of books
-    if (fgets(buf, BUF_LEN, file) != NULL) {
+    if (fgets(buf, BUF_LEN, file) != NULL)
         sscanf(buf, "%d\n", &nbook);
-    } else {
-        printf("Error in reading file\n");
+    else
         return -1;
-    }
+        
+    // init head node
+    headNodePt = (BookHeadNode*) malloc(sizeof(BookHeadNode));
     
     // read book info
     for (int i = 0; i < nbook; i++) {
         if (book) {
-            book -> next = (Book*) malloc(sizeof(Book));
+            book -> next = create_empty_book();
             book = book -> next;
         } else {
-            book = (Book*) malloc(sizeof(Book));
+            book = create_empty_book();
             headNodePt -> book = book;
         }
         
         // load book id
         fgets(buf, BUF_LEN, file);
-        sscanf(buf, "ID:%ud\n", &(book -> id));
+        sscanf(buf, "ID:\t\t\t\t%u\n", &(book -> id));
         
         // load book title
         fgets(buf, BUF_LEN, file);
-		sscanf(buf, "Book Title:\%[^\n]", book -> title);
+		sscanf(buf, "Book Title:\t\t\%[^\n]", book -> title);
 		
 		// load book authors
 		fgets(buf, BUF_LEN, file);
-		sscanf(buf, "Book Authors:\%[^\n]", book -> authors);
+		sscanf(buf, "Book Authors:\t\%[^\n]", book -> authors);
 		
 		// load book year
 		fgets(buf, BUF_LEN, file);
-		sscanf(buf, "Book Year:%ud\n", &(book -> year));
+		sscanf(buf, "Book Year:\t\t%u\n", &(book -> year));
 		
 		// load book copies
 		fgets(buf, BUF_LEN, file);
-		sscanf(buf, "Book Copies:%ud\n", &(book -> copies));
+		sscanf(buf, "Book Copies:\t%u\n", &(book -> copies));
     }
     fclose(file);
     
     // try cleaning up the old books
     book_cleanup();
     
-    // update
+    // update global value
     headNodePt -> length = nbook;
     bookHeadNodePt = headNodePt;
     
@@ -199,7 +192,7 @@ static void book_cleanup() {
         while (temp != NULL) {
             current = temp;
             temp = current -> next;
-            free(current);
+            clean_book(current);
         }
         free(bookHeadNodePt);
         bookHeadNodePt = NULL;
@@ -236,9 +229,8 @@ static int remove_book_node(int pos) {
 static int append_book_node(Book* book) {
     Book* bookNode = bookHeadNodePt -> book;
     // find the last node
-    for (int i = 0; i < bookHeadNodePt -> length - 1; i++) {
+    for (int i = 0; i < bookHeadNodePt -> length - 1; i++)
         bookNode = bookNode -> next;
-    }
     // append the target node
     bookNode -> next = book;
     return 0;
@@ -251,4 +243,16 @@ static BookList create_empty_booklist() {
         0 // number of elements in the array
     };
     return bookList;
+}
+
+static Book* create_empty_book() {
+    // create and init a book with default values
+    Book* book = (Book*) malloc(sizeof(Book));
+    book -> id = 0;
+    book -> title = (char*) malloc(sizeof(char) * BOOK_TITLE_LEN);
+    book -> authors = (char*) malloc(sizeof(char) * BOOK_AUTHORS_LEN);
+    book -> year = 0;
+    book -> copies = 0;
+    book -> next = NULL;
+    return book;
 }

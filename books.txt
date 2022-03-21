@@ -1,0 +1,21 @@
+4
+ID:				1
+Book Title:		C Primer Plus
+Book Authors:	Stephen Prata
+Book Year:		2005
+Book Copies:	11
+ID:				2
+Book Title:		Computer Systems:A Programmer's Perspective
+Book Authors:	Randal E.Bryant, David R.O'Hallaron
+Book Year:		2006
+Book Copies:	10
+ID:				3
+Book Title:		Introduction to Algorithms
+Book Authors:	Ronald L. Rivest, Charles E. Leiserson, Thomas H. Cormen, Clifford Stei11
+Book Year:		2006
+Book Copies:	10
+ID:				4
+Book Title:		Algorithms Unlocked
+Book Authors:	Thomas H. Cormen
+Book Year:		2013
+Book Copies:	12

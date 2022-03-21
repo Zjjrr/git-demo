@@ -1,0 +1,3 @@
+Sam	sam
+Tom	tom
+Clear	clear
