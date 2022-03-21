@@ -1,5 +1,6 @@
 #ifndef STRSPLIT_GUARD__H
 #define STRSPLIT_GUARD__H
+
 #define MAX_STR_LEN 128
 #define MAX_STR_COUNT 8
 

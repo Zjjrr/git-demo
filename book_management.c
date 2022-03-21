@@ -33,16 +33,110 @@ typedef struct _BookHeadNode {
 BookHeadNode* bookHeadNodePt = NULL;
 
 int store_books(FILE *file) {
-    // TODO: store books to file
+    Book* book;
+
+    // check if fp is valid
+    if (!file) {
+        fprintf(stderr, "Error in opening file\n");
+        return -1;
+    }
+    
+    // check if book list is valid
+    if (!bookHeadNodePt) {
+        fprintf(stderr, "There is nothing to store\n");
+        return -1;
+    } else
+        book = bookHeadNodePt -> book;
+    
+    // write the number of books
+    fprintf(file, "%ud\n", bookHeadNodePt -> length);
+    
+    // write books info
+    for (int i = 0; i < bookHeadNodePt -> length; i++) {
+        // Book ID:
+        fprintf(file, "ID:%ud\n", book -> id);
+        
+        // Book Title:
+        fprintf(file, "Book Title:%s\n", book -> title);
+        
+        // Book Authors:
+        fprintf(file, "Book Authors:%s\n", book -> authors);
+        
+        // Book Year:
+        fprintf(file, "Book Year:%ud\n", book -> year);
+        
+        // Book Copies:
+        fprintf(file, "Book Copies:%ud\n", book -> copies);
+        
+        book = book -> next;
+    }
+    fclose(file);
+    return 0;
 }
 
 int load_books(FILE *file) {
-    if (file == NULL) {
-        fprintf(stderr, "File is invalid\n");
+    int nbook = 0;
+    BookHeadNode* headNodePt;
+    Book* book;
+    char buf[BUF_LEN];
+    
+    // check if fp is valid
+    if (!file) {
+        fprintf(stderr, "Error in opening file\n");
         return -1;
     }
-    // TODO: load books from file
     
+    // init head node
+    headNodePt = (BookHeadNode*) malloc(sizeof(BookHeadNode));
+    
+    // read first line as the number of books
+    if (fgets(buf, BUF_LEN, file) != NULL) {
+        sscanf(buf, "%d\n", &nbook);
+    } else {
+        printf("Error in reading file\n");
+        return -1;
+    }
+    
+    // read book info
+    for (int i = 0; i < nbook; i++) {
+        if (book) {
+            book -> next = (Book*) malloc(sizeof(Book));
+            book = book -> next;
+        } else {
+            book = (Book*) malloc(sizeof(Book));
+            headNodePt -> book = book;
+        }
+        
+        // load book id
+        fgets(buf, BUF_LEN, file);
+        sscanf(buf, "ID:%ud\n", &(book -> id));
+        
+        // load book title
+        fgets(buf, BUF_LEN, file);
+		sscanf(buf, "Book Title:\%[^\n]", book -> title);
+		
+		// load book authors
+		fgets(buf, BUF_LEN, file);
+		sscanf(buf, "Book Authors:\%[^\n]", book -> authors);
+		
+		// load book year
+		fgets(buf, BUF_LEN, file);
+		sscanf(buf, "Book Year:%ud\n", &(book -> year));
+		
+		// load book copies
+		fgets(buf, BUF_LEN, file);
+		sscanf(buf, "Book Copies:%ud\n", &(book -> copies));
+    }
+    fclose(file);
+    
+    // try cleaning up the old books
+    book_cleanup();
+    
+    // update
+    headNodePt -> length = nbook;
+    bookHeadNodePt = headNodePt;
+    
+    return 0;
 }
 
 int add_book(Book book) {
