@@ -3,13 +3,8 @@
 #include <string.h>
 #include "common.h"
 #include "book_management.h"
+#include "book_common.h"
 #include "strsplit.h"
-
-#define MAX_LIST_LEN 128
-#define SYM_SPLIT ", "
-
-// frees any resource allocated to store books
-static void book_cleanup();
 
 // remove a node from the linked list by position
 // return 0 if succeed to remove a node, or -1 otherwise
@@ -25,14 +20,6 @@ static BookList create_empty_booklist();
 
 // create an empty book
 static Book* create_empty_book();
-
-
-/* here I define a struct of header node
- * for the convenience of editing the linked list */
-typedef struct _BookHeadNode {
-    Book* book; // pointer to the first element of book list
-    int length; // length of the book list
-} BookHeadNode;
 
 BookHeadNode* bookHeadNodePt = NULL;
 
@@ -123,7 +110,7 @@ int load_books(FILE *file) {
     fclose(file);
     
     // try cleaning up the old books
-    book_cleanup();
+    clean_books(bookHeadNodePt);
     
     // update global value
     headNodePt -> length = nbook;
@@ -185,20 +172,6 @@ BookList find_book_by_year (unsigned int year) {
     return bookList;
 }
 
-static void book_cleanup() {
-    if (bookHeadNodePt != NULL) {
-        Book* temp = bookHeadNodePt -> book;
-        Book* current;
-        while (temp != NULL) {
-            current = temp;
-            temp = current -> next;
-            clean_book(current);
-        }
-        free(bookHeadNodePt);
-        bookHeadNodePt = NULL;
-    }
-}
-
 static int remove_book_node(int pos) {
     if (pos < 0 || pos > bookHeadNodePt -> length - 1)
         return -1;
@@ -237,7 +210,7 @@ static int append_book_node(Book* book) {
 }
 
 static BookList create_empty_booklist() {
-    Book* books = (Book*) malloc(sizeof(Book) * MAX_LIST_LEN);
+    Book* books = (Book*) malloc(sizeof(Book) * LIST_LEN);
     BookList bookList = {
         books, // pointer to an array of struct book
         0 // number of elements in the array

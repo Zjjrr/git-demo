@@ -1,8 +1,8 @@
 #ifndef USER_GUARD__H
 #define USER_GUARD__H
 
-#include <stdio.h>
-#include "type_return_code.h"
+#define USERNAME_LEN 64 // maximum user name length
+#define PASSWORD_LEN 64 // maximum password length
 
 typedef struct _User {
     char* username;
@@ -19,12 +19,18 @@ int store_users(FILE *file);
 //returns 0 if users were loaded correctly, or an error code otherwise
 int load_users(FILE *file);
 
-// borrow a book from the library
-// return 0 if borrow the book successfully, or an error code otherwise
-int borrow_book(User user, int id);
+// login a user by username and password
+// return a user if login correctly, or NULL otherwise
+User* user_login(const char* username, const char* password);
 
-// return a book to the library
-// return 0 if return the book successfully, or an error code otherwise
-int return_book(User user, int id);
+// register a user by username and password
+// return 0 if register a user correctly, or an error code otherwise
+int user_register(char* username, char* password);
+
+// logout
+void user_logout();
+
+// free any resource allocated for the users
+void clean_users(User* userHeadNode);
 
 #endif

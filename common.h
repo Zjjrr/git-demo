@@ -2,17 +2,19 @@
 #define COMMON_GUARD__H
 
 #define BUF_LEN 128 // buffer size
-#define USERNAME_LEN 64 // maximum user name length
-#define PASSWORD_LEN 64 // maximum password length
-#define BOOK_TITLE_LEN 64 // maximum book title length
-#define BOOK_AUTHORS_LEN 64 // maximum book authors length
-#define BOOKS_DATA "books.txt"
-#define USERS_DATA "users.txt"
-#define LOANS_DATA "loads.txt"
+#define SYM_SPLIT ", " // separator of combined string
+#define LIST_LEN 128 // maximum length of the list
+#define DATA_LEN 32 // maximum length of the path of data file
 
-#include "book_management.h"
+#define BOOKS_DATA "books.txt" // default data file of books
+#define USERS_DATA "users.txt" // default data file of users
+#define LOANS_DATA "loans.txt" // default data file of loans
 
-// free any resource allocated for the book
-void clean_book(Book* book);
+typedef struct _LibraryData {
+    char* books;
+    char* users;
+    char* loans;
+    int isDynamic;
+} LibraryData;
 
 #endif
