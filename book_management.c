@@ -37,6 +37,7 @@ int store_books(FILE *file) {
     
     // write books info
     for (int i = 0; i < bookHeadNodePt -> length; i++) {
+    
         // Book ID:
         fprintf(file, "ID:\t\t\t\t%u\n", book -> id);
         
@@ -51,6 +52,8 @@ int store_books(FILE *file) {
         
         // Book Copies:
         fprintf(file, "Book Copies:\t%u\n", book -> copies);
+        
+        
         
         book = book -> next;
     }
@@ -120,7 +123,14 @@ int load_books(FILE *file) {
 }
 
 int add_book(Book book) {
-    return (bookHeadNodePt == NULL) ? -1 : append_book_node(&book);
+    // make a deep copy of the Book
+    Book* abook = create_empty_book();
+    abook -> id = book.id;
+    strncpy(abook-> title, book.title, BOOK_TITLE_LEN);
+    strncpy(abook -> authors, book.authors, BOOK_AUTHORS_LEN);
+    abook -> year = book.year;
+    abook -> copies = book.copies;
+    return (bookHeadNodePt == NULL) ? -1 : append_book_node(abook);
 }
 
 int remove_book(Book book) {
@@ -206,6 +216,7 @@ static int append_book_node(Book* book) {
         bookNode = bookNode -> next;
     // append the target node
     bookNode -> next = book;
+    (bookHeadNodePt -> length)++;
     return 0;
 }
 

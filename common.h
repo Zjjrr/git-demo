@@ -17,4 +17,10 @@ typedef struct _LibraryData {
     int isDynamic;
 } LibraryData;
 
+typedef enum _UserStatus {
+    GUEST,
+    USER,
+    LIBRARIAN
+} UserStatus;
+
 #endif

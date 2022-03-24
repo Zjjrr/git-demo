@@ -9,7 +9,7 @@ int store_loans(FILE *file) {
 }
 
 int load_loans(FILE *file) {
-
+return 0;
 }
 
 IdList get_loans(const char* username) {

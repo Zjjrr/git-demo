@@ -10,6 +10,9 @@ typedef struct _User {
     struct _User* next;
 } User;
 
+// reserved for administrators
+static User librarian = {"librarian", "librarian", NULL};
+
 //saves the database of users in the specified file
 //returns 0 if users were stored correctly, or an error code otherwise
 int store_users(FILE *file);

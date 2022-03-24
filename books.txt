@@ -11,7 +11,7 @@ Book Year:		2006
 Book Copies:	10
 ID:				3
 Book Title:		Introduction to Algorithms
-Book Authors:	Ronald L. Rivest, Charles E. Leiserson, Thomas H. Cormen, Clifford Stei11
+Book Authors:	Ronald L. Rivest, Thomas H. Cormen
 Book Year:		2006
 Book Copies:	10
 ID:				4
