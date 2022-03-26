@@ -11,7 +11,9 @@ typedef enum _Status {
     STATUS_PARAMETER_DEFAULT, // return 5 if use default parameter
     STATUS_USER_INVALID, // return 6 if the user's information is invalid
     STATUS_USER_EXIST, // return 7 if the user is already exist
-    STATUS_USER_NONEXIST //return 8 if the user is not exist
+    STATUS_USER_NONEXIST, //return 8 if the user is not exist
+    STATUS_USER_COMMON, // return 9 if the user is a common user
+    STATUS_USER_LIBRARIAN // return 10 if the user is librarian
 } Status;
 
 #endif

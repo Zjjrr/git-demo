@@ -23,8 +23,8 @@ int store_users(FILE *file);
 int load_users(FILE *file);
 
 // login a user by username and password
-// return a user if login correctly, or NULL otherwise
-User* user_login(const char* username, const char* password);
+// return status code
+int user_login(const char* username, const char* password);
 
 // register a user by username and password
 // return 0 if register a user correctly, or an error code otherwise

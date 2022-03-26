@@ -157,24 +157,41 @@ static void menu_interface() {
             /*  20  */ "Enter the number of copies of the book that you wish to add: ",
             /*  21  */ "Book was successfully added!",
             /*  22  */ "Sorry, you attempted to add an invalid book, please try again.",
-            /*  23  */ "ID\tTitle\t\t\t\t\t\tAutors\t\t\t\t\t\tyear\tcopies"
+            /*  23  */ "ID\tTitle\t\t\t\t\t\tAutors\t\t\t\t\t\tyear\tcopies",
+            /*  24  */ "Please enter your username: ",
+            /*  25  */ "Please enter your password: ",
+            /*  26  */ "Sorry, the username or password you entered is incorrect, please try again.",
+            /*  27  */ "Sorry, registration unsuccessful, the username you entered is invalid.",
+            /*  28  */ "Error: Failed to store books to %s\n",
+            /*  29  */ "Error: Failed to store users to %s\n",
+            /*  30  */ "Error: Failed to store loans to %s\n"
         };
         menuItems = items;
     }
     
     while (1) {
+        // print head
+        switch (userStatus) {
+            case GUEST:
+                printf("\n");
+                break;
+            case USER:
+            case LIBRARIAN:
+                printf("\n(logged in as: %s)\n", currentUser -> username);
+        }
+        
         // print menu
         switch (userStatus) {
             case GUEST:
-                printf("\n%s\n%s\n%s\n%s\n%s\n%s\n%s", menuItems[0], menuItems[1], menuItems[2], 
+                printf("%s\n%s\n%s\n%s\n%s\n%s\n%s", menuItems[0], menuItems[1], menuItems[2], 
                     menuItems[3], menuItems[4], menuItems[9], menuItems[11]);
                 break;
             case USER:
-                printf("\n%s\n%s\n%s\n%s\n%s\n%s\n%s", menuItems[0], menuItems[5], menuItems[6], 
+                printf("%s\n%s\n%s\n%s\n%s\n%s\n%s", menuItems[0], menuItems[5], menuItems[6], 
                     menuItems[3], menuItems[4], menuItems[10], menuItems[11]);
                 break;
             case LIBRARIAN:
-                printf("\n%s\n%s\n%s\n%s\n%s\n%s\n%s", menuItems[0], menuItems[7], menuItems[8], 
+                printf("%s\n%s\n%s\n%s\n%s\n%s\n%s", menuItems[0], menuItems[7], menuItems[8], 
                     menuItems[3], menuItems[4], menuItems[10], menuItems[11]);
                 break;
         }
@@ -194,10 +211,17 @@ static void menu_interface() {
                     printf("%s", menuItems[14]);
                     scanf("%s", password);
                     flush_buffer();
-                    if (!(status = user_register(username, password)))
-                        printf("%s\n", menuItems[16]);
-                    else if (status == STATUS_USER_EXIST)
-                        printf("%s\n", menuItems[15]);
+                    switch (user_register(username, password)) {
+                        case STATUS_OK:
+                            printf("%s\n", menuItems[16]);
+                            break;
+                        case STATUS_USER_EXIST:
+                            printf("%s\n", menuItems[15]);
+                            break;
+                        case STATUS_USER_INVALID:
+                            printf("%s\n", menuItems[27]);
+                            break;
+                    }
                     
                 } else if (userStatus == USER) {
                     // TODO: borrow a book
@@ -225,19 +249,38 @@ static void menu_interface() {
                 break;
             case 2:
                 if (userStatus == GUEST) {
-                    // TODO : login
+                    // login
+                    printf("\n%s", menuItems[24]);
+                    scanf("%s", username);
+                    flush_buffer();
+                    printf("%s", menuItems[25]);
+                    scanf("%s", password);
+                    flush_buffer();
+                    switch (user_login(username, password)) {
+                        case STATUS_ERROR:
+                            printf("%s\n", menuItems[26]);
+                            break;
+                        case STATUS_USER_COMMON:
+                            userStatus = USER;
+                            break;
+                        case STATUS_USER_LIBRARIAN:
+                            userStatus = LIBRARIAN;
+                            break;
+                    }
                 } else if (userStatus == USER) {
                     // TODO: return a book
                 } else if (userStatus == LIBRARIAN) {
-                    // TODO: remove a book
+                    // remove a book
+                    
                 }
                 break;
             case 3:
-                // search for a book
+                // TODO: search for a book
                 break;
             case 4:
                 // display all books
                 bookTemp = bookHeadNodePt -> book;
+                printf("\n%s\n", menuItems[23]);
                 for (int i = 0; i < bookHeadNodePt -> length; i++) {
                     print_book(bookTemp);
                     bookTemp = bookTemp -> next;
@@ -246,6 +289,8 @@ static void menu_interface() {
             case 5:
                 if (userStatus == USER || userStatus == LIBRARIAN) {
                     // log out
+                    user_logout();
+                    userStatus = GUEST;
                 } else {
                     // quit
                     quit = 1;
@@ -257,10 +302,15 @@ static void menu_interface() {
                 break;
         }
         if (quit) {
-            // TODO: 
-            if (!store_books(fopen(BOOKS_DATA, "w+")))
-            printf("succeed to store books\n");
+            // store data
+            if (store_books(fopen(libraryData -> books, "w+")))
+                printf(menuItems[28], libraryData -> books);
+            if (store_users(fopen(libraryData -> users, "w+")))
+                printf(menuItems[29], libraryData -> users);
+            if (store_loans(fopen(libraryData -> loans, "w+")))
+                printf(menuItems[30], libraryData -> loans);
             
+            // free resources
             free(username);
             free(password);
             free(title);

@@ -73,32 +73,37 @@ void clean_users(User* userHeadNode) {
     }
 }
 
-User* user_login(const char* username, const char* password) {
+int user_login(const char* username, const char* password) {
     User* user = userHeadNodePt;
     User* temp = NULL;
     
     // check if username and password are valid
     if (!username || !password)
-        return NULL;
+        return STATUS_ERROR;
     
     // logout before logging in
     user_logout();
     
     // check if user is valid
     if (!userHeadNodePt)
-        return NULL;
+        return STATUS_ERROR;
     
     // login
     while (user) {
         temp = user -> next;
         if (!strcmp(username, user -> username) && !strcmp(password, user -> password)) {
             currentUser = user;
-            return user;
+            return STATUS_USER_COMMON;
         }
         user = temp;
     }
     
-    return NULL;
+    if (!strcmp(username, librarian.username) && !strcmp(password, librarian.password)) {
+        currentUser = &librarian;
+        return STATUS_USER_LIBRARIAN;
+    }
+    
+    return STATUS_ERROR;
 }
 
 int user_register(char* username, char* password) {
@@ -107,7 +112,7 @@ int user_register(char* username, char* password) {
     User* temp = NULL;
     
     // check if username and password are valid
-    if (!username || !password)
+    if (!username || !password || !strcmp(username, librarian.username))
         return STATUS_USER_INVALID;
     
     // check if the username is exist already

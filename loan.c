@@ -5,11 +5,11 @@
 Loan* loanHeadNodePt = NULL;
 
 int store_loans(FILE *file) {
-
+    return 0;
 }
 
 int load_loans(FILE *file) {
-return 0;
+    return 0;
 }
 
 IdList get_loans(const char* username) {
