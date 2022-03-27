@@ -5,19 +5,19 @@
 #include "common.h"
 #include "type_return_code.h"
 
+typedef struct _Id {
+    unsigned int id;
+    struct _Id* next;
+} Id;
+
 typedef struct _Loan {
     char* username;
-    unsigned int* id;
+    Id* idNode;
     struct _Loan* next;
 } Loan;
 
-typedef struct _Id {
-    unsigned int id;
-    unsigned int* next;
-} Id;
-
 typedef struct _IdList {
-    unsigned int list[LIST_LEN];
+    Id* list;
     int length;
 } IdList;
 
@@ -31,7 +31,7 @@ int store_loans(FILE *file);
 int load_loans(FILE *file);
 
 // gets all the loans of the user
-IdList get_loans(const char* username);
+Loan* get_loans(const char* username);
 
 // add loan to a user by username
 int add_loans(char* username, unsigned int id);

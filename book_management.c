@@ -139,7 +139,7 @@ int remove_book(Book book) {
 
     Book* bookNode = bookHeadNodePt -> book;
     for (int i = 0; i < bookHeadNodePt -> length; i++) {
-        if (bookNode == &book)
+        if (bookNode -> id == book.id)
             return remove_book_node(i);
         bookNode = bookNode -> next;
     }
@@ -150,8 +150,9 @@ BookList find_book_by_title (const char *title) {
     BookList bookList = create_empty_booklist();
     Book* book = bookHeadNodePt -> book;
     for (int i = 0; i < bookHeadNodePt -> length; i++) {
-        if (!strcmp(book -> title, title))
+        if (strstr(book -> title, title))
             (bookList.list)[bookList.length ++] = *book;
+        book = book -> next;
     }
     return bookList;
 }
@@ -168,6 +169,7 @@ BookList find_book_by_author (const char *author) {
             }
         }
         authors.free(authors);
+        book = book -> next;
     }
     return bookList;
 }
@@ -175,9 +177,10 @@ BookList find_book_by_author (const char *author) {
 BookList find_book_by_year (unsigned int year) {
     BookList bookList = create_empty_booklist();
     Book* book = bookHeadNodePt -> book;
-        for (int i = 0; i < bookHeadNodePt -> length; i++) {
+    for (int i = 0; i < bookHeadNodePt -> length; i++) {
         if (book -> year == year)
             (bookList.list)[bookList.length ++] = *book;
+        book = book -> next;
     }
     return bookList;
 }

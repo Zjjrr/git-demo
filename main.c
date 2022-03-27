@@ -31,6 +31,21 @@ static void flush_buffer();
 // print book information
 static void print_book(Book* book);
 
+// print book list information
+static void print_book_list(Book* book, int length);
+
+static void menu_register_user(char* username, char* password);
+
+static void menu_login_user(char* username, char* password);
+
+static void menu_add_book(char* title, char* author);
+
+static void menu_remove_book();
+
+static void menu_search_book(char* title, char* author);
+
+static void menu_display_all_books();
+
 extern BookHeadNode* bookHeadNodePt;
 extern User* userHeadNodePt;
 extern User* currentUser;
@@ -79,6 +94,14 @@ int main(int argc, char** args) {
     
     menu_interface();
     
+    // store data
+    if (store_books(fopen(libraryData -> books, "w+")))
+        printf(menuItems[28], libraryData -> books);
+    if (store_users(fopen(libraryData -> users, "w+")))
+        printf(menuItems[29], libraryData -> users);
+    if (store_loans(fopen(libraryData -> loans, "w+")))
+        printf(menuItems[30], libraryData -> loans);
+    
     // free any resource
     clean_books(bookHeadNodePt);
     clean_users(userHeadNodePt);
@@ -93,19 +116,26 @@ int main(int argc, char** args) {
 static int borrow_book(const User* user, const unsigned int id) {
     
     Book* book = NULL;
-    IdList ids;
+    Loan* loan = NULL;
+    Id* idNode = NULL;
     
     // check if the user and books is valid
     if (!user || !bookHeadNodePt)
         return STATUS_ERROR;
-    ids = get_loans(user -> username);
+    else
+        book = bookHeadNodePt -> book;
+    
+    if (!(loan = get_loans(user -> username))) 
+        return STATUS_USER_INVALID;
+    else
+        idNode = loan -> idNode;
     
     // check if the user has borrowed the book
-    for (int i = 0; i < ids.length; i++) {
-        if (id == ids.list[i])
+    while (idNode) {
+        if (id == idNode -> id)
             return STATUS_BOOK_LOANED;
+        idNode = idNode -> next;
     }
-    book = bookHeadNodePt -> book;
     
     // check if the book has been lent out
     for (int j = 0; j < bookHeadNodePt -> length; j++) {
@@ -123,10 +153,12 @@ static int borrow_book(const User* user, const unsigned int id) {
         return STATUS_BOOK_INVALID;
 }
 
+static int return_book(const User* user, const unsigned int id) {
+    return STATUS_OK;
+}
+
 static void menu_interface() {
-    int option, status, quit = 0;
-    unsigned int year, copies;
-    Book* bookTemp = NULL;
+    int option = 0, status, quit = 0;
     char* username = (char*) malloc(sizeof(char) * USERNAME_LEN);
     char* password = (char*) malloc(sizeof(char) * PASSWORD_LEN);
     char* title = (char*) malloc(sizeof(char) * BOOK_TITLE_LEN);
@@ -164,7 +196,22 @@ static void menu_interface() {
             /*  27  */ "Sorry, registration unsuccessful, the username you entered is invalid.",
             /*  28  */ "Error: Failed to store books to %s\n",
             /*  29  */ "Error: Failed to store users to %s\n",
-            /*  30  */ "Error: Failed to store loans to %s\n"
+            /*  30  */ "Error: Failed to store loans to %s\n",
+            /*  31  */ "Enter the ID of the book you wish to remove: ",
+            /*  32  */ "Sorry, the book you selected doesn't esist, please try again.",
+            /*  33  */ "Book was successfully removed!",
+            /*  34  */ "Sorry, failed to remove the book, an error occurred.",
+            /*  35  */ "1) Find books by title",
+            /*  36  */ "2) Find books by author",
+            /*  37  */ "3) Find books by year",
+            /*  38  */ "4) Return to pervious menu",
+            /*  39  */ "Loading search menu...",
+            /*  40  */ "Please enter title: ",
+            /*  41  */ "Please enter author: ",
+            /*  42  */ "Please enter year: ",
+            /*  43  */ "Returning to previous menu...",
+            /*  44  */ "Sorry, no books found, please try again.",
+            /*  45  */ "Logging out..."
         };
         menuItems = items;
     }
@@ -205,92 +252,41 @@ static void menu_interface() {
             case 1:
                 if (userStatus == GUEST) {
                     // register a user
-                    printf("\n%s", menuItems[13]);
-                    scanf("%s", username);
-                    flush_buffer();
-                    printf("%s", menuItems[14]);
-                    scanf("%s", password);
-                    flush_buffer();
-                    switch (user_register(username, password)) {
-                        case STATUS_OK:
-                            printf("%s\n", menuItems[16]);
-                            break;
-                        case STATUS_USER_EXIST:
-                            printf("%s\n", menuItems[15]);
-                            break;
-                        case STATUS_USER_INVALID:
-                            printf("%s\n", menuItems[27]);
-                            break;
-                    }
-                    
+                    menu_register_user(username, password);
                 } else if (userStatus == USER) {
                     // TODO: borrow a book
                 } else if (userStatus == LIBRARIAN) {
                     // add a book
-                    printf("\n%s", menuItems[17]);
-                    scanf("%s", title);
-                    flush_buffer();
-                    printf("%s", menuItems[18]);
-                    scanf("%s", author);
-                    flush_buffer();
-                    printf("%s", menuItems[19]);
-                    scanf("%u", &year);
-                    flush_buffer();
-                    printf("%s", menuItems[20]);
-                    scanf("%u", &copies);
-                    flush_buffer();
-                    bookTemp = create_book(available_book_id(bookHeadNodePt), title, author, year, copies);
-                    if (add_book(*bookTemp))
-                        printf("%s\n", menuItems[22]);
-                    else
-                        printf("%s\n", menuItems[21]);
-                    free(bookTemp);
+                    menu_add_book(title, author);
                 }
                 break;
             case 2:
                 if (userStatus == GUEST) {
                     // login
-                    printf("\n%s", menuItems[24]);
-                    scanf("%s", username);
-                    flush_buffer();
-                    printf("%s", menuItems[25]);
-                    scanf("%s", password);
-                    flush_buffer();
-                    switch (user_login(username, password)) {
-                        case STATUS_ERROR:
-                            printf("%s\n", menuItems[26]);
-                            break;
-                        case STATUS_USER_COMMON:
-                            userStatus = USER;
-                            break;
-                        case STATUS_USER_LIBRARIAN:
-                            userStatus = LIBRARIAN;
-                            break;
-                    }
+                    menu_login_user(username, password);
                 } else if (userStatus == USER) {
                     // TODO: return a book
                 } else if (userStatus == LIBRARIAN) {
                     // remove a book
-                    
+                    menu_remove_book();
                 }
                 break;
             case 3:
-                // TODO: search for a book
+                // search for a book
+                    printf("\n%s\n", menuItems[39]);
+                    menu_search_book(title, author);
+                    printf("\n%s\n", menuItems[43]);
                 break;
             case 4:
                 // display all books
-                bookTemp = bookHeadNodePt -> book;
-                printf("\n%s\n", menuItems[23]);
-                for (int i = 0; i < bookHeadNodePt -> length; i++) {
-                    print_book(bookTemp);
-                    bookTemp = bookTemp -> next;
-                }
+                menu_display_all_books();
                 break;
             case 5:
                 if (userStatus == USER || userStatus == LIBRARIAN) {
                     // log out
                     user_logout();
                     userStatus = GUEST;
+                    printf("\n%s\n", menuItems[45]);
                 } else {
                     // quit
                     quit = 1;
@@ -299,17 +295,9 @@ static void menu_interface() {
             default:
                 // try again
                 printf("%s\n", menuItems[12]);
-                break;
         }
+        option = 0;
         if (quit) {
-            // store data
-            if (store_books(fopen(libraryData -> books, "w+")))
-                printf(menuItems[28], libraryData -> books);
-            if (store_users(fopen(libraryData -> users, "w+")))
-                printf(menuItems[29], libraryData -> users);
-            if (store_loans(fopen(libraryData -> loans, "w+")))
-                printf(menuItems[30], libraryData -> loans);
-            
             // free resources
             free(username);
             free(password);
@@ -359,4 +347,168 @@ static void flush_buffer() {
 
 static void print_book(Book* book) {
     printf("%-8u%-48s%-48s%-8u%-8u\n", book -> id, book -> title, book -> authors, book -> year, book -> copies);
+}
+
+static void print_book_list(Book* book, int length) {
+    for (int i = 0; i < length; i++)
+        print_book(&book[i]);
+}
+
+static void menu_register_user(char* username, char* password) {
+    printf("\n%s", menuItems[13]);
+    scanf("%s", username);
+    flush_buffer();
+    printf("%s", menuItems[14]);
+    scanf("%s", password);
+    flush_buffer();
+    switch (user_register(username, password)) {
+        case STATUS_OK:
+            printf("%s\n", menuItems[16]);
+            break;
+        case STATUS_USER_EXIST:
+            printf("%s\n", menuItems[15]);
+            break;
+        case STATUS_USER_INVALID:
+            printf("%s\n", menuItems[27]);
+        break;
+    }
+}
+
+static void menu_login_user(char* username, char* password) {
+    printf("\n%s", menuItems[24]);
+    scanf("%s", username);
+    flush_buffer();
+    printf("%s", menuItems[25]);
+    scanf("%s", password);
+    flush_buffer();
+    switch (user_login(username, password)) {
+        case STATUS_ERROR:
+            printf("%s\n", menuItems[26]);
+            break;
+        case STATUS_USER_COMMON:
+            userStatus = USER;
+            break;
+        case STATUS_USER_LIBRARIAN:
+            userStatus = LIBRARIAN;
+            break;
+    }
+}
+
+static void menu_add_book(char* title, char* author) {
+    unsigned int year, copies;
+    Book* bookTemp = NULL;;
+    
+    printf("\n%s", menuItems[17]);
+    scanf("%s", title);
+    flush_buffer();
+    printf("%s", menuItems[18]);
+    scanf("%s", author);
+    flush_buffer();
+    printf("%s", menuItems[19]);
+    scanf("%u", &year);
+    flush_buffer();
+    printf("%s", menuItems[20]);
+    scanf("%u", &copies);
+    flush_buffer();
+    bookTemp = create_book(available_book_id(bookHeadNodePt), title, author, year, copies);
+    if (add_book(*bookTemp))
+        printf("%s\n", menuItems[22]);
+    else
+        printf("%s\n", menuItems[21]);
+    free(bookTemp);
+}
+
+static void menu_remove_book() {
+    unsigned int choice = 0;
+    Book* bookTemp = bookHeadNodePt -> book;
+    
+    menu_display_all_books();
+    printf("\n%s", menuItems[31]);
+    scanf("%u", &choice);
+    flush_buffer();
+    for (int i = 0; i < bookHeadNodePt -> length; i++) {
+        if (bookTemp -> id == choice) {
+            if (!remove_book(*bookTemp))
+                printf("%s\n", menuItems[33]);
+            else
+                printf("%s\n", menuItems[34]);
+            return;
+        }
+        bookTemp = bookTemp -> next;
+    }
+    printf("%s\n", menuItems[32]);
+}
+
+static void menu_search_book(char* title, char* author) {
+    int option = 0, quit = 0, year;
+    BookList bookList;
+    while (1) {
+        // print menu
+        printf("\n%s\n%s\n%s\n%s\n%s\n%s", menuItems[0], menuItems[35], menuItems[36], 
+            menuItems[37], menuItems[38], menuItems[11]);
+        scanf("%d", &option);
+        flush_buffer();
+        switch(option) {
+            case 1:
+                // by title
+                printf("%s", menuItems[40]);
+                scanf("%s", title);
+                flush_buffer();
+                bookList = find_book_by_title(title);
+                if (!bookList.length)
+                    printf("%s\n", menuItems[44]);
+                else {
+                    print_book_list(bookList.list, bookList.length);
+                    // free resource after using it
+                    free(bookList.list);
+                }
+                break;
+            case 2:
+                // by author
+                printf("%s", menuItems[41]);
+                scanf("%s", author);
+                flush_buffer();
+                bookList = find_book_by_author(author);
+                if (!bookList.length)
+                    printf("%s\n", menuItems[45]);
+                else {
+                    print_book_list(bookList.list, bookList.length);
+                    free(bookList.list);
+                }
+                break;
+            case 3:
+                // by year
+                printf("%s", menuItems[42]);
+                scanf("%d", &year);
+                flush_buffer();
+                bookList = find_book_by_year(year);
+                if (!bookList.length)
+                    printf("%s\n", menuItems[46]);
+                else {
+                    print_book_list(bookList.list, bookList.length);
+                    free(bookList.list);
+                }
+                break;
+            case 4:
+                // return
+                quit = 1;
+                break;
+            default:
+                // tyr again
+                printf("%s\n", menuItems[12]);
+        }
+        option = 0;
+        if (quit)
+            break;
+    }
+}
+
+static void menu_display_all_books() {
+     Book* bookTemp = bookHeadNodePt -> book;
+     
+     printf("\n%s\n", menuItems[23]);
+     for (int i = 0; i < bookHeadNodePt -> length; i++) {
+          print_book(bookTemp);
+          bookTemp = bookTemp -> next;
+     }
 }

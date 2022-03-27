@@ -34,21 +34,19 @@ int store_users(FILE* file) {
 
 int load_users(FILE* file) {
     char buf[BUF_LEN];
-    User* headNodePt = create_empty_user();
-    User* user = headNodePt;
-    User** temp = NULL;
-    
+    User* headNodePt = NULL;
+    User** user = &headNodePt;
+
     // check if fp is valid
-    if (!file)
+    if (!file) {
         return -1;
+    }
     // read users info
     while (fgets(buf, BUF_LEN, file)) {
-        if (temp) {
-            *temp = create_empty_user();
-            user = *temp;
-        }
-        sscanf(buf, "%s\t%s\n", user -> username, user -> password);
-        temp = &(user -> next);
+        if(user)
+            *user = create_empty_user();
+        sscanf(buf, "%s\t%s\n", (*user) -> username, (*user) -> password);
+        user = &((*user) -> next);
     }
 
     fclose(file);
