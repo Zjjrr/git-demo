@@ -96,11 +96,11 @@ int load_books(FILE *file) {
         
         // load book title
         fgets(buf, BUF_LEN, file);
-		sscanf(buf, "Book Title:\t\t\%[^\n]", book -> title);
+		sscanf(buf, "Book Title:\t\t%[^\n]", book -> title);
 		
 		// load book authors
 		fgets(buf, BUF_LEN, file);
-		sscanf(buf, "Book Authors:\t\%[^\n]", book -> authors);
+		sscanf(buf, "Book Authors:\t%[^\n]", book -> authors);
 		
 		// load book year
 		fgets(buf, BUF_LEN, file);

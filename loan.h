@@ -36,6 +36,9 @@ Loan* get_loans(const char* username);
 // add loan to a user by username
 int add_loans(char* username, unsigned int id);
 
+// remove loan from a user by username
+int remove_loans(char* username, unsigned int id);
+
 // free any resource allocated for the loans
 void clean_loans(Loan* loanHeadNode);
 

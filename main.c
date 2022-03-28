@@ -46,6 +46,10 @@ static void menu_search_book(char* title, char* author);
 
 static void menu_display_all_books();
 
+static void menu_borrow_book();
+
+static void menu_return_book();
+
 extern BookHeadNode* bookHeadNodePt;
 extern User* userHeadNodePt;
 extern User* currentUser;
@@ -115,42 +119,46 @@ int main(int argc, char** args) {
 
 static int borrow_book(const User* user, const unsigned int id) {
     
+    Book* theBook = NULL;
     Book* book = NULL;
     Loan* loan = NULL;
     Id* idNode = NULL;
+    int copies= 0;
     
     // check if the user and books is valid
     if (!user || !bookHeadNodePt)
         return STATUS_ERROR;
-    else
-        book = bookHeadNodePt -> book;
-    
-    if (!(loan = get_loans(user -> username))) 
-        return STATUS_USER_INVALID;
-    else
-        idNode = loan -> idNode;
-    
-    // check if the user has borrowed the book
-    while (idNode) {
-        if (id == idNode -> id)
-            return STATUS_BOOK_LOANED;
-        idNode = idNode -> next;
-    }
-    
-    // check if the book has been lent out
-    for (int j = 0; j < bookHeadNodePt -> length; j++) {
+
+    // find the book
+    book = bookHeadNodePt -> book;
+    while (book) {
         if (book -> id == id) {
-            if (! (book -> copies))
-                return STATUS_BOOK_OUT;
-            else
-                break;
-        } else
-            book = book -> next;
+            theBook = book;
+            break;
+        }
+        book = book -> next;
     }
-    
-    // check if the book was found
-    if (!book)
+    if (!theBook)
         return STATUS_BOOK_INVALID;
+
+    // check if the book has been lent out
+    loan = loanHeadNodePt;
+    while (loan) {
+        idNode = loan -> idNode;
+        while (idNode) {
+            if (idNode -> id == id) {
+                copies++;
+                break;
+            }
+            idNode = idNode -> next;
+        }
+        loan = loan -> next;
+    }
+    if (!(theBook -> copies - copies))
+        return STATUS_BOOK_OUT;
+    
+    // borrow the book
+    return add_loans(user -> username, id);
 }
 
 static int return_book(const User* user, const unsigned int id) {
@@ -211,7 +219,14 @@ static void menu_interface() {
             /*  42  */ "Please enter year: ",
             /*  43  */ "Returning to previous menu...",
             /*  44  */ "Sorry, no books found, please try again.",
-            /*  45  */ "Logging out..."
+            /*  45  */ "Logging out...",
+            /*  46  */ "Enter the ID number of the book you wish to borrow: ",
+            /*  47  */ "You have successfully borrowed the book!",
+            /*  48  */ "Sorry, the book ID is invalid, please try again.",
+            /*  49  */ "Sorry, you already have a copy of this book on loan.",
+            /*  50  */ "Below is the list of Books you are currently borrowing:",
+            /*  51  */ "Enter the ID number of the book you wish to return:",
+            /*  52  */ "Sorry, the book has been lent out."
         };
         menuItems = items;
     }
@@ -254,7 +269,8 @@ static void menu_interface() {
                     // register a user
                     menu_register_user(username, password);
                 } else if (userStatus == USER) {
-                    // TODO: borrow a book
+                    // borrow a book
+                    menu_borrow_book();
                 } else if (userStatus == LIBRARIAN) {
                     // add a book
                     menu_add_book(title, author);
@@ -265,7 +281,8 @@ static void menu_interface() {
                     // login
                     menu_login_user(username, password);
                 } else if (userStatus == USER) {
-                    // TODO: return a book
+                    // return a book
+                    menu_return_book();
                 } else if (userStatus == LIBRARIAN) {
                     // remove a book
                     menu_remove_book();
@@ -451,7 +468,7 @@ static void menu_search_book(char* title, char* author) {
         switch(option) {
             case 1:
                 // by title
-                printf("%s", menuItems[40]);
+                printf("\n%s", menuItems[40]);
                 scanf("%s", title);
                 flush_buffer();
                 bookList = find_book_by_title(title);
@@ -465,7 +482,7 @@ static void menu_search_book(char* title, char* author) {
                 break;
             case 2:
                 // by author
-                printf("%s", menuItems[41]);
+                printf("\n%s", menuItems[41]);
                 scanf("%s", author);
                 flush_buffer();
                 bookList = find_book_by_author(author);
@@ -478,7 +495,7 @@ static void menu_search_book(char* title, char* author) {
                 break;
             case 3:
                 // by year
-                printf("%s", menuItems[42]);
+                printf("\n%s", menuItems[42]);
                 scanf("%d", &year);
                 flush_buffer();
                 bookList = find_book_by_year(year);
@@ -511,4 +528,33 @@ static void menu_display_all_books() {
           print_book(bookTemp);
           bookTemp = bookTemp -> next;
      }
+}
+
+static void menu_borrow_book() {
+    int choice;
+
+    menu_display_all_books();
+    printf("\n%s", menuItems[46]);
+    scanf("%u", &choice);
+    flush_buffer();
+    switch (borrow_book(currentUser, choice)) {
+        case STATUS_BOOK_INVALID:
+            printf("%s\n", menuItems[48]);
+            break;
+        case STATUS_BOOK_OUT:
+            printf("%s\n", menuItems[52]);
+            break;
+        case STATUS_BOOK_LOANED:
+            printf("%s\n", menuItems[49]);
+            break;
+        case STATUS_OK:
+            printf("%s\n", menuItems[47]);
+            break;
+        default:
+            break;
+    }
+}
+
+static void menu_return_book() {
+
 }

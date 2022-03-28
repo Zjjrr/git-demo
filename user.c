@@ -15,7 +15,7 @@ User* userHeadNodePt = NULL;
 User* currentUser = NULL;
 
 int store_users(FILE* file) {
-    User* user;
+    User* user = NULL;
     
     // check if parameters are valid
     if (!userHeadNodePt || !file)
@@ -43,8 +43,7 @@ int load_users(FILE* file) {
     }
     // read users info
     while (fgets(buf, BUF_LEN, file)) {
-        if(user)
-            *user = create_empty_user();
+        *user = create_empty_user();
         sscanf(buf, "%s\t%s\n", (*user) -> username, (*user) -> password);
         user = &((*user) -> next);
     }
