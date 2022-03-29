@@ -16,11 +16,6 @@ typedef struct _Loan {
     struct _Loan* next;
 } Loan;
 
-typedef struct _IdList {
-    Id* list;
-    int length;
-} IdList;
-
 //saves the database of loans in the specified file
 //returns 0 if loans were stored correctly, or an error code otherwise
 int store_loans(FILE *file);

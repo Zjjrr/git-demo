@@ -143,11 +143,12 @@ int add_loans(char* username, unsigned int id) {
 int remove_loans(char* username, unsigned int id) {
     Loan** loan = &loanHeadNodePt;
     Loan** parent = NULL;
-    
+    Loan* temp;
+
     // check if username is valid
-    if (!username || loanHeadNodePt)
+    if (!username || !loanHeadNodePt)
         return -1;
-        
+
     // try getting the loan
     while (*loan) {
         if (!strcmp((*loan) -> username, username))
@@ -155,13 +156,14 @@ int remove_loans(char* username, unsigned int id) {
         parent = loan;
         loan = &((*loan) -> next);
     }
-    
+
     // if there is no id after removing the target id, 
     // remove the loan from linked list
     if (((*loan) -> idNode) -> next == NULL && (*loan) -> idNode -> id == id) {
+        temp = *loan;
         if (parent)
             (*parent) -> next = (*loan) -> next;
-        clean_loan(*loan);
+        clean_loan(temp);
         return 0;
     } else {
         return remove_id(*loan, id);
@@ -195,7 +197,7 @@ static int add_id(Loan* loan, unsigned int id) {
         idPt = &((*idPt) -> next);
     }
     
-    // not contained, create it
+    // not contained, create new node
     *idPt = (Id*) malloc(sizeof(Id));
     (*idPt) -> id = id;
     (*idPt) -> next = NULL;
@@ -204,28 +206,49 @@ static int add_id(Loan* loan, unsigned int id) {
 }
 
 static int remove_id(Loan* loan, unsigned int id) {
-    Id** idPt = NULL;
-    Id** parent = NULL;
+    Id* idPt = NULL;
+    Id* parent = NULL;
     
     // check if loan is valid
     if (!loan)
         return -1;
     else
-        idPt = &(loan -> idNode);
-        
-    // TODO: implement remove
+        idPt = loan -> idNode;
+
+    if (!idPt)
+        return -1;
+
+    if (idPt -> id == id) {
+        // is head
+        loan -> idNode = idPt -> next;
+        free(idPt);
+        return 0;
+    } else {
+        // not head
+        while(idPt) {
+            if (idPt -> id == id) {
+                parent -> next = idPt -> next;
+                free(idPt);
+		break;
+            }
+            parent = idPt;
+            idPt = idPt -> next;
+        }
+        // not found the book
+        return -1;
+    }
 }
 
 static void clean_loan(Loan* loan) {
     Id* idNode = loan -> idNode;
     Id* temp = NULL;
-    
+
     while(idNode) {
         temp = idNode -> next;
         free(idNode);
         idNode = temp;
     }
-    
+
     free(loan -> username);
     free(loan);
 }

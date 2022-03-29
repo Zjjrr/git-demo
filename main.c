@@ -31,6 +31,9 @@ static void flush_buffer();
 // print book information
 static void print_book(Book* book);
 
+// print loaned books
+static void print_loaned_books(Loan* loan);
+
 // print book list information
 static void print_book_list(Book* book, int length);
 
@@ -62,6 +65,7 @@ char (*menuItems)[BUF_LEN] = NULL;;
 #ifdef TESTMODE
 
 int main(int argc, char** args) {
+    // io test
     if (!load_books(fopen(BOOKS_DATA, "r")))
         printf("succeed to load books\n");
     if (!store_books(fopen(BOOKS_DATA, "w+")))
@@ -226,7 +230,9 @@ static void menu_interface() {
             /*  49  */ "Sorry, you already have a copy of this book on loan.",
             /*  50  */ "Below is the list of Books you are currently borrowing:",
             /*  51  */ "Enter the ID number of the book you wish to return:",
-            /*  52  */ "Sorry, the book has been lent out."
+            /*  52  */ "Sorry, the book has been lent out.",
+            /*  53  */ "You have successfully returned the book!",
+            /*  54  */ "Sorry, you have no books on loan, please borrow a book first."
         };
         menuItems = items;
     }
@@ -556,5 +562,43 @@ static void menu_borrow_book() {
 }
 
 static void menu_return_book() {
+    int choice, status;
+    Loan* loan = get_loans(currentUser -> username);
+    
+    if (loan && loan -> idNode) {
+        printf("\n%s\n", menuItems[50]);
+        print_loaned_books(loan);
+        printf("\n%s", menuItems[51]);
+        scanf("%u", &choice);
+        flush_buffer();
+        status = remove_loans(currentUser -> username, choice);
+        if (status)
+            printf("%s\n", menuItems[48]);
+        else
+            printf("%s\n", menuItems[53]);
+    } else {
+        printf("\n%s\n", menuItems[54]);
+    }
 
+}
+
+static void print_loaned_books(Loan* loan) {
+    Id* idNode = loan -> idNode;
+    Book* bookNode = bookHeadNodePt ? bookHeadNodePt -> book : NULL;
+
+    printf("\n%s\n", menuItems[23]);
+    while(idNode) {
+        // find book by id
+        while (bookNode) {
+            if (idNode -> id == bookNode -> id) {
+                print_book(bookNode);
+                break;
+            }
+            bookNode = bookNode -> next;
+        }
+        // restore book node to head
+        bookNode = bookHeadNodePt -> book;
+        
+        idNode = idNode -> next;
+    }
 }
