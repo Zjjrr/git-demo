@@ -493,7 +493,7 @@ static void menu_search_book(char* title, char* author) {
                 flush_buffer();
                 bookList = find_book_by_author(author);
                 if (!bookList.length)
-                    printf("%s\n", menuItems[45]);
+                    printf("%s\n", menuItems[44]);
                 else {
                     print_book_list(bookList.list, bookList.length);
                     free(bookList.list);
@@ -506,7 +506,7 @@ static void menu_search_book(char* title, char* author) {
                 flush_buffer();
                 bookList = find_book_by_year(year);
                 if (!bookList.length)
-                    printf("%s\n", menuItems[46]);
+                    printf("%s\n", menuItems[44]);
                 else {
                     print_book_list(bookList.list, bookList.length);
                     free(bookList.list);

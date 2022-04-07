@@ -53,8 +53,6 @@ int store_books(FILE *file) {
         // Book Copies:
         fprintf(file, "Book Copies:\t%u\n", book -> copies);
         
-        
-        
         book = book -> next;
     }
     fclose(file);
