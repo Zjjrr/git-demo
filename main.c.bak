@@ -428,11 +428,7 @@ static void menu_add_book(char* title, char* author) {
     scanf("%s", author);
     flush_buffer();
     printf("%s", menuItems[19]);
-    if (!scanf("%u", &year)) {
-        printf("%s\n", menuItems[22]);
-        flush_buffer();
-        return;
-    }
+    scanf("%u", &year);
     flush_buffer();
     printf("%s", menuItems[20]);
     scanf("%u", &copies);
@@ -521,7 +517,7 @@ static void menu_search_book(char* title, char* author) {
                 quit = 1;
                 break;
             default:
-                // try again
+                // tyr again
                 printf("%s\n", menuItems[12]);
         }
         option = 0;
