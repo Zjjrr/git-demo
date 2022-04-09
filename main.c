@@ -355,12 +355,7 @@ static int init_parameters(int argc, char** args) {
 }
 
 static void free_parameters() {
-    if (libraryData && libraryData -> isDynamic) {
-        free(libraryData -> books);
-        free(libraryData -> users);
-        free(libraryData -> loans);
-        free(libraryData);
-    }
+    free(libraryData);
 }
 
 static void flush_buffer() {
